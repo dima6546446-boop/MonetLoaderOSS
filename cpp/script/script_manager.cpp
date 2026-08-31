@@ -988,6 +988,23 @@ void lua::script_manager::register_opcode_extensions(script& s)
     }
   };
 
+  // PC MoonLoader compatibility: виртуальные клавиши (vkeys.lua). На Android
+  // физической клавиатуры нет, поэтому состояние всегда «не нажата» — PC-скрипты
+  // с таким подходом загружаются и не падают на проверках клавиш.
+  state["isKeyDown"] = [](int) { return false; };
+  state["isKeyJustPressed"] = [](int) { return false; };
+  state["wasKeyPressed"] = [](int) { return false; };
+  state["isKeyAvailable"] = [](int) { return false; };
+  state["setVirtualKeyDown"] = [](int, bool) {};
+
+  // PC MoonLoader compatibility: у игрока нет курсора ОС (сенсорный ввод),
+  // mimgui рисует собственный курсор; вызов безвреден, чтобы PC-скрипты не падали.
+  state["showCursor"] = [](bool, std::optional<bool>) {};
+
+  state["isCharAlive"] = [](int self) {
+    return CPools::GetPedPool()->GetAtRef(self) != nullptr;
+  };
+
   // MonetLoader extensions
   state["isWidgetPressedEx"] = [](int widget_id, int frames) {
     CVector2D out {};

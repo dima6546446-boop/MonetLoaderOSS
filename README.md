@@ -2,6 +2,23 @@
 A Lua script loader for GTA: San Andreas (and SAMP) on Android.<br>
 Main goal - compatibility with PC MoonLoader (as far as Mobile allows it).
 
+## PC (MoonLoader) script compatibility:
+* `require 'mimgui'` — native mobile ImGui binding (ImGui 1.72-style API).
+* `require 'imgui'` — compatibility layer implementing the PC MoonImGui API
+  (`imgui.Process`, `OnDrawFrame`/`BeforeDrawFrame`, `ImBool`/`ImFloat4`/`ImBuffer`
+  buffers with `.v`, `ImColor`, `IM_COL32`, legacy enum names such as
+  `Col.ChildWindowBg`/`TreeNodeFlags.AllowOverlapMode`, `GetContentRegionAvailWidth`, etc.)
+  on top of `mimgui`, so PC scripts written for MoonLoader's `imgui` module can run unmodified
+  next to mimgui-based scripts.
+* `require 'vkeys'` — standard MoonLoader virtual-key constants (`VK_*`, `id_to_name`, `name_to_id`).
+* `require 'encoding'` — MoonLoader-compatible text encoding module built on
+  `monet_cp1251_to_utf8`/`monet_utf8_to_cp1251`; CP1251-encoded PC scripts
+  (`u8:encode`/`u8'default'`) work unmodified.
+* Keyboard-related globals from PC (`isKeyDown`, `isKeyJustPressed`, `wasKeyPressed`,
+  `isKeyAvailable`, `setVirtualKeyDown`, `showCursor`) are present as no-ops/false stubs:
+  there is no PC keyboard on Android, but this lets old scripts load and run. `isCharAlive`
+  is implemented for real.
+
 ## Source layout:
 1. `cpp` - Main MonetLoader code.
    * `game` - GTA and SAMP stuff.
