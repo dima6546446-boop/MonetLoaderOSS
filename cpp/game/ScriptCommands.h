@@ -6,6 +6,7 @@
 */
 #pragma once
 #include "ScriptCommandNames.h"
+#include <cstdint>
 #include <cstring>
 #include <vector>
 

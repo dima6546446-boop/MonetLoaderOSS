@@ -57,7 +57,11 @@ void customgxt::init(monethook::plt_scanner& sc)
 
 std::string customgxt::find(const char* gxt_key)
 {
-  return game::GxtCharToAscii(find_raw(gxt_key));
+  std::uint16_t* raw = find_raw(gxt_key);
+  if (!raw) {
+    return "";
+  }
+  return game::GxtCharToAscii(raw);
 }
 
 void customgxt::add(std::string gxt_key, const char* ascii)

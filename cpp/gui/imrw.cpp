@@ -199,7 +199,7 @@ void imrw::render_draw_data(ImDrawData* draw_data)
   rw::RwRenderStateSet(rw::rwRENDERSTATETEXTUREADDRESSU, (void*)addrU);
   rw::RwRenderStateSet(rw::rwRENDERSTATETEXTUREADDRESSV, (void*)addrV);
   rw::RwRenderStateSet(rw::rwRENDERSTATETEXTUREFILTER, (void*)filter);
-  rw::RwRenderStateSet(rw::rwRENDERSTATETEXTUREFILTER, (void*)perspective);
+  rw::RwRenderStateSet(rw::rwRENDERSTATETEXTUREPERSPECTIVE, (void*)perspective);
   rw::RwRenderStateSet(rw::rwRENDERSTATECULLMODE, (void*)cullmode);
   rw::RwRenderStateSet(rw::rwRENDERSTATEFOGENABLE, (void*)fog);
   rw::RwRenderStateSet(rw::rwRENDERSTATEBORDERCOLOR, (void*)borderColor);

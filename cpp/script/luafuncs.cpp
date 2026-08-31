@@ -14,6 +14,7 @@
 #include "raknet/BitStream.h"
 #include "raknet/RakNetTypes.h"
 #include "raknet/StringCompressor.h"
+#include <bit>
 #include <optional>
 
 namespace {
@@ -523,26 +524,26 @@ void luafuncs::reg(sol::state& state)
   };
 
   state["sampSet3dTextString"] = [](std::uint16_t labelid, std::string_view text) {
-    bool exists = game::netinfo::texts_3d.size() && game::netinfo::texts_3d[labelid].active;
+    bool exists = labelid < game::netinfo::texts_3d.size() && game::netinfo::texts_3d[labelid].active;
     if (!exists) {
       return;
     }
 
     game::netinfo::text_3d& label = game::netinfo::texts_3d[labelid];
-    create_3d_text(labelid, text, label.color, label.x, label.y, label.z,
+    create_3d_text(labelid, text, std::rotr(label.color, 8), label.x, label.y, label.z,
         label.distance, label.ignore_walls, label.playerid, label.vehicleid);
   };
 
   state["sampGet3dTextInfoById"] = [](std::uint16_t labelid) {
     using ReturnType = std::tuple<std::string, std::int32_t, float, float, float, float, bool, std::uint16_t, std::uint16_t>;
-    bool exists = game::netinfo::texts_3d.size() && game::netinfo::texts_3d[labelid].active;
+    bool exists = labelid < game::netinfo::texts_3d.size() && game::netinfo::texts_3d[labelid].active;
     if (!exists) {
       return ReturnType { "", 0, 0, 0, 0, 0, false, -1, -1 };
     }
 
     game::netinfo::text_3d& label = game::netinfo::texts_3d[labelid];
     return ReturnType {
-      label.text, static_cast<std::int32_t>(label.color),
+      label.text, static_cast<std::int32_t>(std::rotr(label.color, 8)),
       label.x, label.y, label.z, label.distance, label.ignore_walls, label.playerid, label.vehicleid
     };
   };

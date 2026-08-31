@@ -246,7 +246,9 @@ sol::table lua::memory::reg(sol::this_state st)
     return f;
   };
   m["getdouble"] = [](std::uintptr_t address, std::optional<bool> unprotect) {
-    std::uint64_t i = memory::read(address, sizeof(i), unprotect);
+    std::uint32_t lo = static_cast<std::uint32_t>(memory::read(address, sizeof(lo), unprotect));
+    std::uint32_t hi = static_cast<std::uint32_t>(memory::read(address + sizeof(lo), sizeof(hi), unprotect));
+    std::uint64_t i = (static_cast<std::uint64_t>(hi) << 32) | lo;
     double d;
     std::memcpy(&d, &i, sizeof(d));
     return d;

@@ -411,9 +411,10 @@ bool game::netinfo::handle_incoming_rpc(std::uint8_t id, RakNet::BitStream* bs)
     bs->ResetReadPointer();
     bs->Read(player_id);
 
-    --online;
-    player_stream_out(id);
-    remote_players.erase(player_id);
+    if (remote_players.erase(player_id) != 0 && online > 0) {
+      --online;
+    }
+    player_stream_out(player_id);
 
     if (player_id == max_id) {
       max_id = local_player_id;
@@ -560,6 +561,7 @@ bool game::netinfo::handle_incoming_rpc(std::uint8_t id, RakNet::BitStream* bs)
     bs->Read(did);
     if (did < 0) {
       dialog.shown = false;
+      return true;
     }
     bs->Read(dstyle);
     bs->Read(title_len);

@@ -62,7 +62,7 @@ T number(T min, T max)
 template <typename T>
 T number(T max)
 {
-	return random(0, max);
+	return number(T { 0 }, max);
 }
 
 /**
@@ -113,6 +113,6 @@ Iter choose(Iter begin, Iter end)
 template <typename Container>
 auto choose(const Container& cont) -> decltype(*std::begin(cont))&
 {
-	return *random_element(std::begin(cont), std::end(cont));
+	return *choose(std::begin(cont), std::end(cont));
 }
 }

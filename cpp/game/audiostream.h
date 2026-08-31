@@ -150,7 +150,7 @@ namespace audiostream {
     }
     bass_manager::context ctx {};
 
-    BASS_ChannelFlags(handle, BASS_SAMPLE_LOOP, BASS_SAMPLE_LOOP);
+    BASS_ChannelFlags(handle, looped ? BASS_SAMPLE_LOOP : 0, BASS_SAMPLE_LOOP);
   }
 
   inline bool get_looped(HSTREAM handle)

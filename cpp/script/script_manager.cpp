@@ -955,22 +955,22 @@ void lua::script_manager::register_opcode_extensions(script& s)
   state["convertMatrixToQuaternion"] = [](float rx, float ry, float rz, float fx, float fy, float fz, float ux, float uy, float uz) {
     CMatrix mat {};
     mat.right = CVector { rx, ry, rz };
-    mat.up = CVector { fx, fy, fz };
-    mat.at = CVector { ux, uy, uz };
+    mat.at = CVector { fx, fy, fz };
+    mat.up = CVector { ux, uy, uz };
 
     CQuaternion quat;
     quat.Set(mat);
     return std::tuple<float, float, float, float>(quat.x, quat.y, quat.z, quat.w);
   };
   state["convertQuaternionToMatrix"] = [](float w, float x, float y, float z) {
-    CQuaternion quat { w, x, y, z };
+    CQuaternion quat { x, y, z, w };
     CMatrix mat {};
     quat.Get(&mat);
 
     return std::tuple<float, float, float, float, float, float, float, float, float>(
         mat.right.x, mat.right.y, mat.right.z,
-        mat.up.x, mat.up.y, mat.up.z,
-        mat.at.x, mat.at.y, mat.at.z);
+        mat.at.x, mat.at.y, mat.at.z,
+        mat.up.x, mat.up.y, mat.up.z);
   };
 
   state["lockPlayerControl"] = [](bool lock) {
@@ -1144,7 +1144,7 @@ void lua::script_manager::register_cleo_opcodes(script& s)
         }
 
         if (radius >= 1000.f || center.DistanceSquared(ped->GetPosition()) <= radius * radius) {
-          s.last_ped = last_found + 1;
+          s.last_ped = i + 1;
           return std::tuple<bool, std::optional<int>>(
               true,
               pool->GetRef(ped));
@@ -1173,7 +1173,7 @@ void lua::script_manager::register_cleo_opcodes(script& s)
         }
 
         if (radius >= 1000.f || center.DistanceSquared(vehicle->GetPosition()) <= radius * radius) {
-          s.last_vehicle = last_found + 1;
+          s.last_vehicle = i + 1;
           return std::tuple<bool, std::optional<int>>(
               true,
               pool->GetRef(vehicle));
@@ -1197,7 +1197,7 @@ void lua::script_manager::register_cleo_opcodes(script& s)
     for (int i = last_found; i < pool->m_nSize; ++i) {
       CObject* object = pool->GetAt(i);
       if (object && (radius >= 1000.f || center.DistanceSquared(object->GetPosition()) <= radius * radius)) {
-        s.last_object = last_found + 1;
+        s.last_object = i + 1;
         return std::tuple<bool, std::optional<int>>(
             true,
             pool->GetRef(object));
