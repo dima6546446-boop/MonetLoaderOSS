@@ -1,0 +1,94 @@
+////////////////////////////////////////////////////////////////////////////////
+// Mission Autostart — CLEO-скрипт для GTA San Andreas PC (v1.0 US)
+////////////////////////////////////////////////////////////////////////////////
+//
+// НАЗНАЧЕНИЕ
+//   Автоматически запускает сюжетные миссии по индексу: как только игрок
+//   в игре и не в миссии ($ONMISSION == 0), скрипт стартует миссию с индексом
+//   из cleo\mission_auto.ini. После миссии индекс увеличивается и пишется
+//   обратно в ini — при следующем запуске игры бот продолжит со следующей.
+//
+// ВАЖНО ПОНИМАТЬ (результат исследования)
+//   «Бот, который сам ПРОХОДИТ любые миссии» невозможен ни на PC, ни на Android:
+//   миссии SA — произвольные скрипты в main.scm, универсального ИИ для них нет.
+//   Что реально существует:
+//     * автоСТАРТ миссий по индексу (этот скрипт, опкод 0417);
+//     * мгновенное ЗАВЕРШЕНИЕ начатой миссии (моды "Завершить миссию" SIZZZ,
+//       "Skip any mission" — патч main.scm со скрытой функцией пропуска);
+//     * автопилоты и боевые ассистенты (см. Mission Bot для MonetLoader/Android).
+//   Комбинация «этот скрипт + Skip any mission» = авто-прохождение игры: миссия
+//   запускается и сразу засчитывается как пройденная.
+//
+// ТРЕБОВАНИЯ
+//   * GTA SA PC 1.0 US (main.scm оригинальный);
+//   * CLEO 4 (опкоды 0AF0/0AF1 для ini).
+//
+// КОМПИЛЯЦИЯ
+//   1. Установите Sanny Builder 3 (sannybuilder.com), режим редактирования GTA SA.
+//   2. Откройте этот файл, нажмите F6 (Compile) — получите .cs.
+//   3. .cs положите в GTA San Andreas\CLEO\.
+//   4. Создайте cleo\mission_auto.ini:
+//        [mission]
+//        index = 0
+//      Индексы миссий: 0 = первая сюжетная (Big Smoke "Intro" и т.д.),
+//      полный список индексов main.scm v1.0 — в карте миссий Sanny Builder
+//      (main.scm → декомпиляция → метка :LABEL_XXX / список mission offsets).
+//      НАЧНИТЕ С 0 И ДВИГАЙТЕСЬ ПО ОДНОМУ: неверный индекс = вылет или мусор.
+//
+// ОТКЛЮЧЕНИЕ: удалите .cs или переименуйте ini.
+////////////////////////////////////////////////////////////////////////////////
+
+{$VERSION 3.1.0027}
+{$CLEO .cs}
+
+thread 'MAUTO'
+
+// 0@ — индекс миссии; читаем из ini (если файла/ключа нет — будет мусор,
+// отрицательное значение CLEO возвращает как признак «не найдено»)
+0AF0: 0@ = get_int_from_ini_file "cleo\mission_auto.ini" section "mission" key "index"
+if
+   not 0@ >= 0
+then
+    0@ = 0
+    0AF1: write_int 0@ to_ini_file "cleo\mission_auto.ini" section "mission" key "index"
+end
+wait 3000 // даём игре загрузиться
+
+:MAUTO_LOOP
+wait 500
+if
+0256:   player $PLAYER_CHAR defined
+jf @MAUTO_LOOP
+if
+   not $ONMISSION == 1
+jf @MAUTO_LOOP
+
+// даём игроку 3 секунды контроля, затем стартуем миссию
+wait 3000
+if
+0256:   player $PLAYER_CHAR defined
+jf @MAUTO_LOOP
+if
+   not $ONMISSION == 1
+jf @MAUTO_AFTER
+
+0417: start_mission 0@
+wait 1000
+
+:MAUTO_AFTER
+// ждём конца миссии (любого исхода)
+:MAUTO_WAIT
+wait 2000
+if
+   not $ONMISSION == 0
+jf @MAUTO_NEXT
+if
+0256:   player $PLAYER_CHAR defined
+jf @MAUTO_WAIT
+jump @MAUTO_WAIT
+
+:MAUTO_NEXT
+0@ += 1
+0AF1: write_int 0@ to_ini_file "cleo\mission_auto.ini" section "mission" key "index"
+wait 5000
+jump @MAUTO_LOOP

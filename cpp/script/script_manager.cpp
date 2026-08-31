@@ -1005,6 +1005,62 @@ void lua::script_manager::register_opcode_extensions(script& s)
     return CPools::GetPedPool()->GetAtRef(self) != nullptr;
   };
 
+  // Mission Bot helpers: доступ к радар-блипам (маркеры миссий/цели)
+  state["getRadarBlips"] = [](sol::this_state state) {
+    sol::table blips { state, sol::create };
+    int idx = 1;
+    auto* traces = CRadar::GetRadarTraces();
+    for (int i = 0; i < 250; ++i) {
+      const auto& t = traces[i];
+      if (!t.m_bInUse) {
+        continue;
+      }
+      sol::table b { state, sol::create };
+      b["slot"] = i;
+      b["type"] = static_cast<int>(t.m_nBlipType); // 0 none, 1 car, 2 coord, 3 char, 4 object
+      b["entity"] = static_cast<int>(t.m_nEntityHandle);
+      b["x"] = t.m_vecPos.x;
+      b["y"] = t.m_vecPos.y;
+      b["z"] = t.m_vecPos.z;
+      b["colour"] = static_cast<int>(t.m_nColour);
+      b["sprite"] = static_cast<int>(t.m_nRadarSprite);
+      b["short_range"] = t.m_bShortRange != 0;
+      blips[idx] = b;
+      ++idx;
+    }
+    return blips;
+  };
+
+  // Mission Bot helpers: виртуальный геймпад — запись состояния кнопок CPad(0).
+  // Значение 0 = отпущено, 255 = нажато (стики: -128..128).
+  // Скрипт должен выставлять состояние каждый кадр (wait 0), т.к. игра
+  // перезаписывает NewState вводом с тача.
+  state["setPadButtonState"] = [](const char* name, int value) {
+    CControllerState& s = CPad::GetPad(0)->NewState;
+    const std::int16_t v = static_cast<std::int16_t>(value < -128 ? -128 : (value > 255 ? 255 : value));
+    std::string_view n { name };
+    if (n == "leftx") s.LeftStickX = v;
+    else if (n == "lefty") s.LeftStickY = v;
+    else if (n == "rightx") s.RightStickX = v;
+    else if (n == "righty") s.RightStickY = v;
+    else if (n == "l1") s.LeftShoulder1 = v;
+    else if (n == "l2") s.LeftShoulder2 = v;
+    else if (n == "r1") s.RightShoulder1 = v;
+    else if (n == "r2") s.RightShoulder2 = v;
+    else if (n == "dpadup") s.DPadUp = v;
+    else if (n == "dpaddown") s.DPadDown = v;
+    else if (n == "dpadleft") s.DPadLeft = v;
+    else if (n == "dpadright") s.DPadRight = v;
+    else if (n == "start") s.Start = v;
+    else if (n == "select") s.Select = v;
+    else if (n == "square") s.ButtonSquare = v;
+    else if (n == "triangle") s.ButtonTriangle = v;
+    else if (n == "cross") s.ButtonCross = v;
+    else if (n == "circle") s.ButtonCircle = v;
+    else if (n == "l3") s.ShockButtonL = v;
+    else if (n == "r3") s.ShockButtonR = v;
+  };
+
   // MonetLoader extensions
   state["isWidgetPressedEx"] = [](int widget_id, int frames) {
     CVector2D out {};
